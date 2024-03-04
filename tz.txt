@@ -1,0 +1,270 @@
+План ТЗ
+
+1. CRM system
+
+Управління перукарнями
+
+admin panel
+
+особистий кабінет (дашборд)
+    - клієнт
+    - майстер
+    - адміністратор салону
+
+фільтри - по пошуку перукарні
+         - по ціні
+         - по часі
+         - та інші
+
+головна сторніка
+
+сторінка салону 
+
+сторінка майста 
+
+////////////////////////***********////////////////////////
+
+
+для майста: 
+
+    налаштування:
+        - власну сторінку
+        - свій прайс
+        - свій графік
+            та інше
+        
+адміністратор салону
+        - налаштовує:
+            - список майстрів
+            - відгуки клієнтів
+            - сторінка салону
+            - графіки та розклади
+
+
+////////////////////////***********////////////////////////
+
+Admin: 
+     - налаштуванням платформи
+     - добавлення нового салону
+     - корегує взаємодію користувачів
+     - та інше...
+
+
+create DB:
+
+Таблиця Customers (Клієнти):
+
+customer_id (PRIMARY KEY)
+first_name
+last_name
+email
+phone
+address
+created_at
+updated_at
+
+
+Таблиця Appointments (Призначення):
+
+appointment_id (PRIMARY KEY)
+customer_id (FOREIGN KEY з таблиці Customers)
+stylist_id (FOREIGN KEY з таблиці Stylists)
+appointment_date
+appointment_time
+created_at
+updated_at
+Таблиця Services (Послуги):
+
+service_id (PRIMARY KEY)
+service_name
+price
+created_at
+Таблиця Stylists (Стилісти):
+
+stylist_id (PRIMARY KEY)
+first_name
+last_name
+email
+phone
+created_at
+updated_at
+Таблиця Payments (Платежі):
+
+payment_id (PRIMARY KEY)
+customer_id (FOREIGN KEY з таблиці Customers)
+appointment_id (FOREIGN KEY з таблиці Appointments)
+amount
+payment_date
+created_at
+updated_at
+
+
+///////////////////////////
+
+CREATE DATABASE IF NOT EXISTS salone_larave_crm;
+
+USE salone_larave_crm;
+
+CREATE TABLE salons
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(250) NOT NULL,
+    description VARCHAR(250),
+    contact_phone VARCHAR(20),
+    contact_email VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE roles
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE addresses
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    salon_id INT,
+    region VARCHAR(100) NOT NULL,
+    district VARCHAR(100),
+    city VARCHAR(100) NOT NULL,
+    street VARCHAR(250) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (salon_id) REFERENCES salons(id)
+);
+
+CREATE TABLE stylists
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    contact_phone VARCHAR(20),
+    contact_email VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE managers
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    contact_phone VARCHAR(20),
+    contact_email VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE services
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(250) NOT NULL,
+    description VARCHAR(250),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE currencies
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    code VARCHAR(3) NOT NULL,
+    value DECIMAL(10, 4) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+CREATE TABLE prices
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    currency_id INT,
+    value DECIMAL(10, 2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (currency_id) REFERENCES currencies(id)
+);
+
+CREATE TABLE payments
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    currency_id INT NOT NULL,
+    customer_id INT NOT NULL,
+    service_id INT NOT NULL,
+    stylist_id INT NOT NULL,
+    value DECIMAL(10, 2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (currency_id) REFERENCES currencies(id),
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
+    FOREIGN KEY (service_id) REFERENCES services(id),
+    FOREIGN KEY (stylist_id) REFERENCES stylists(id)
+);
+
+CREATE TABLE customers
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    contact_phone VARCHAR(20),
+    contact_email VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+
+CREATE TABLE appointments
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    service_id INT NOT NULL,
+    stylist_id INT NOT NULL,
+    salon_id INT NOT NULL,
+    schedule_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
+    FOREIGN KEY (service_id) REFERENCES services(id),
+    FOREIGN KEY (stylist_id) REFERENCES stylists(id),
+    FOREIGN KEY (salon_id) REFERENCES salons(id),
+    FOREIGN KEY (schedule_id) REFERENCES schedules(id)
+);
+
+CREATE TABLE schedules
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    salon_id INT NOT NULL,
+    stylist_id INT NOT NULL,
+    date DATE NOT NULL,
+    start_hour INT NOT NULL,
+    end_hour INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (salon_id) REFERENCES salons(id),
+    FOREIGN KEY (stylist_id) REFERENCES stylists(id)
+);
+
+CREATE TABLE filters
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    filter_name VARCHAR(100) NOT NULL,
+    service_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (service_id) REFERENCES services(id)
+);
+
+CREATE TABLE accounts
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    role_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (role_id) REFERENCES roles(id)
+);
